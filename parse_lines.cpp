@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-#define VERSION 1.1
+#define VERSION 1.2
 
 /// Help message
 void usage(void) {
@@ -44,14 +44,16 @@ int main(int argc, char **argv) {
   fs.close();
 
   /// Creating regex to match a line with pattern
-  std::string reg_pattern = "[^\\s].*" + pattern + ".*\\s";
+  std::string reg_pattern = "[^\\s].*" + pattern + ".*[^\\s]";
   std::regex regex_parse_line(reg_pattern);
 
   /// Getting matchs from buffer
   std::cout << "Searching for matchs on file '" << input_file << "'...\n";
+
   std::sregex_iterator current_match(file_buffer.begin(), file_buffer.end(),
                                      regex_parse_line);
   std::sregex_iterator last_match;
+  std::string previous_match("");
 
   /// Check if there's no matchs
   int lines_match = std::distance(current_match, last_match);
@@ -65,7 +67,6 @@ int main(int argc, char **argv) {
 
   /// Saving matchs on file
   std::cout << "Saving matchs on file '" << output_file << "'...\n";
-  std::string previous_match("");
 
   /// Opening output file
   fs.open(output_file, std::fstream::out | std::fstream::app);
@@ -75,10 +76,11 @@ int main(int argc, char **argv) {
   }
 
   /// Save matchs on file
+  std::smatch match;
   do {
-    std::smatch match = *current_match;
+    match = *current_match;
     if (previous_match.compare(match.str())) {
-      fs << match.str();
+      fs << match.str() << "\n";
       previous_match = match.str();
     }
   } while (++current_match != last_match);
