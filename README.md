@@ -1,2 +1,2 @@
-# Simple_line_parser
+# Line parser
 Simple cpp regex based line parser.
