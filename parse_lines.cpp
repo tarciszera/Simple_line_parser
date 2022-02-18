@@ -4,8 +4,10 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <chrono>
+#include <ctime>
 
-#define VERSION 1.2
+#define VERSION 1.4
 
 /// Help message
 void usage(void) {
@@ -25,8 +27,8 @@ int main(int argc, char **argv) {
   }
 
   /// Getting args
-  std::string input_file(argv[1]), output_file(argv[2]);
-  std::string pattern(argv[3]);
+  const std::string input_file(argv[1]), output_file(argv[2]);
+  const std::string pattern(argv[3]);
 
   /// Init variables
   std::fstream fs;
@@ -40,12 +42,19 @@ int main(int argc, char **argv) {
   }
 
   file_ss << fs.rdbuf();
-  std::string file_buffer(file_ss.str());
+  const std::string file_buffer(file_ss.str());
   fs.close();
 
+  /// Opening output file
+  fs.open(output_file, std::fstream::out | std::fstream::app);
+  if (!fs.good()) {
+    std::cout << "Coudn't open dst_file\n";
+    return 1;
+  }
+
   /// Creating regex to match a line with pattern
-  std::string reg_pattern = "[^\\s].*" + pattern + ".*[^\\s]";
-  std::regex regex_parse_line(reg_pattern);
+  const std::string reg_pattern = "[^\\s].*" + pattern + ".*[^\\s]";
+  const std::regex regex_parse_line(reg_pattern);
 
   /// Getting matchs from buffer
   std::cout << "Searching for matchs on file '" << input_file << "'...\n";
@@ -56,7 +65,7 @@ int main(int argc, char **argv) {
   std::string previous_match("");
 
   /// Check if there's no matchs
-  int lines_match = std::distance(current_match, last_match);
+  const int lines_match = std::distance(current_match, last_match);
   if (lines_match <= 0) {
     std::cout << "Pattern not found\n";
     return 0;
@@ -68,14 +77,14 @@ int main(int argc, char **argv) {
   /// Saving matchs on file
   std::cout << "Saving matchs on file '" << output_file << "'...\n";
 
-  /// Opening output file
-  fs.open(output_file, std::fstream::out | std::fstream::app);
-  if (!fs.good()) {
-    std::cout << "Coudn't open dst_file\n";
-    return 1;
-  }
 
   /// Save matchs on file
+  std::time_t now = time(NULL);
+  fs << "For " << input_file << " at "
+     << std::ctime(&now);
+  fs << "Found '" << pattern << "' at " << lines_match
+     << " lines as following:\n\n";
+
   std::smatch match;
   do {
     match = *current_match;
