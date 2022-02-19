@@ -1,1 +1,2 @@
-g++ -o line_parser parse_lines.cpp -Wall -O3
+g++ -o line_parser line_parser.cpp -Wall -O3
+
